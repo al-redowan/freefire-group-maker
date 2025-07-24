@@ -1,0 +1,6 @@
+{
+  "name": "Esports Team Analyzer",
+  "description": "An application to manage and analyze esports team registrations from a CSV file. Features include data visualization, team name analysis with Gemini AI, and random team grouping for tournaments.",
+  "requestFramePermissions": [],
+  "prompt": ""
+}
