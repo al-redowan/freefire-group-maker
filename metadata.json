@@ -1,0 +1,5 @@
+{
+  "name": "Esports Team Analyzer",
+  "description": "An application to analyze esports team names, manage team lists, and generate tournament groups. Features Gemini-powered name analysis and random group generation.",
+  "requestFramePermissions": []
+}
