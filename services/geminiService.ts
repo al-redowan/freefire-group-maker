@@ -2,13 +2,15 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import type { AnalysisResult, ExtractedTeam } from '../types';
 
-if (!process.env.API_KEY) {
+const API_KEY = "AIzaSyCWwfgL_BKNtRie4Uz7Ks_kEIHvVefZQAo";
+
+if (!API_KEY) {
     // In a real app, you'd want to handle this more gracefully.
     // For this environment, we'll log an error.
-    console.error("API_KEY environment variable not set.");
+    console.error("API_KEY constant not set.");
 }
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
+const ai = new GoogleGenAI({ apiKey: API_KEY! });
 
 export const analyzeTeamNames = async (teamNames: string[], instruction: string): Promise<AnalysisResult> => {
     const teamList = teamNames.join(', ');
@@ -73,7 +75,7 @@ export const extractTeamsFromFileContent = async (fileContentBase64: string, mim
                 parts: [
                     { text: "Extract all team names and their corresponding email addresses from this document. Only include entries that clearly represent a team with an associated email. Ignore headers, footers, or any text that is not part of a team entry. Ensure the output conforms to the provided JSON schema." },
                     { inlineData: { mimeType, data: fileContentBase64 } },
-                ],
+                ]
             },
             config: {
                 responseMimeType: 'application/json',
