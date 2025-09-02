@@ -18,3 +18,12 @@ export interface Group {
     name: string;
     teams: TeamRegistration[];
 }
+
+export interface ExtractedTeam {
+  teamName: string;
+  email: string;
+}
+
+export interface ExtractedTeamPreview extends ExtractedTeam {
+  status: 'new' | 'duplicate' | 'invalid';
+}

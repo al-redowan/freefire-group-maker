@@ -1,3 +1,4 @@
+
 import React from 'react';
 
 interface StatCardProps {
@@ -8,8 +9,8 @@ interface StatCardProps {
 
 const StatCard: React.FC<StatCardProps> = ({ title, value, icon }) => {
     return (
-        <div className="bg-[#2A2D3A] p-6 rounded-xl shadow-lg flex items-center space-x-4 border border-slate-700/50">
-            <div className="p-3 bg-indigo-600/20 rounded-lg text-indigo-300">
+        <div className="bg-gray-800/50 p-6 rounded-lg shadow-lg flex items-center space-x-4 border border-gray-700">
+            <div className="p-3 bg-indigo-500/20 rounded-lg text-indigo-400">
                 {icon}
             </div>
             <div>

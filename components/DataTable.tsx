@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { TeamRegistration } from '../types';
+import type { TeamRegistration } from '../types';
 
 interface DataTableProps {
     data: TeamRegistration[];
@@ -7,6 +7,7 @@ interface DataTableProps {
 
 type SortKey = keyof TeamRegistration;
 type SortOrder = 'asc' | 'desc';
+type FilterStatus = 'all' | 'Yes' | 'No';
 
 interface SortConfig {
     key: SortKey;
@@ -37,6 +38,7 @@ const SortableHeader: React.FC<{
 const DataTable: React.FC<DataTableProps> = ({ data }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [sortConfig, setSortConfig] = useState<SortConfig | null>(null);
+    const [filterStatus, setFilterStatus] = useState<FilterStatus>('all');
 
     const handleSort = (key: SortKey) => {
         let order: SortOrder = 'asc';
@@ -47,11 +49,13 @@ const DataTable: React.FC<DataTableProps> = ({ data }) => {
     };
 
     const sortedAndFilteredData = useMemo(() => {
-        let filteredData = data.filter(item =>
-            Object.values(item).some(val =>
+        let filteredData = data.filter(item => {
+            const matchesSearch = Object.values(item).some(val =>
                 String(val).toLowerCase().includes(searchTerm.toLowerCase())
-            )
-        );
+            );
+            const matchesFilter = filterStatus === 'all' || item.joinedWhatsApp === filterStatus;
+            return matchesSearch && matchesFilter;
+        });
 
         if (sortConfig !== null) {
             filteredData.sort((a, b) => {
@@ -68,37 +72,52 @@ const DataTable: React.FC<DataTableProps> = ({ data }) => {
         }
 
         return filteredData;
-    }, [data, searchTerm, sortConfig]);
+    }, [data, searchTerm, sortConfig, filterStatus]);
 
     return (
-        <div className="bg-[#252836] p-4 sm:p-6 rounded-lg shadow-lg border border-slate-700">
-            <div className="mb-4">
+        <div className="bg-gray-800/50 p-4 sm:p-6 rounded-lg shadow-lg border border-gray-700">
+            <div className="flex flex-col sm:flex-row gap-4 mb-4">
                 <input
                     type="text"
                     placeholder="Search all fields..."
-                    className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-white"
+                    className="w-full sm:flex-grow px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-white"
                     onChange={(e) => setSearchTerm(e.target.value)}
+                    aria-label="Search team data"
                 />
+                <div className="flex-shrink-0">
+                     <label htmlFor="wa-filter" className="sr-only">Filter by WhatsApp Status</label>
+                     <select
+                        id="wa-filter"
+                        className="w-full sm:w-auto h-full px-4 py-2 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-white"
+                        value={filterStatus}
+                        onChange={(e) => setFilterStatus(e.target.value as FilterStatus)}
+                        aria-label="Filter by WhatsApp Status"
+                     >
+                         <option value="all">All WhatsApp Status</option>
+                         <option value="Yes">Joined</option>
+                         <option value="No">Not Joined</option>
+                     </select>
+                </div>
             </div>
             <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-slate-700">
-                    <thead className="bg-slate-800">
+                <table className="min-w-full divide-y divide-gray-700">
+                    <thead className="bg-gray-800">
                         <tr>
                             <SortableHeader title="Team Name" sortKey="teamName" sortConfig={sortConfig} onSort={handleSort} />
                             <SortableHeader title="Leader WhatsApp" sortKey="leaderWhatsApp" sortConfig={sortConfig} onSort={handleSort} />
                             <SortableHeader title="Email" sortKey="email" sortConfig={sortConfig} onSort={handleSort} />
-                            <SortableHeader title="Joined WA" sortKey="joinedWhatsApp" sortConfig={sortConfig} onSort={handleSort} />
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-300 uppercase tracking-wider">Joined WA</th>
                         </tr>
                     </thead>
-                    <tbody className="bg-[#252836] divide-y divide-slate-700">
+                    <tbody className="bg-gray-800/50 divide-y divide-gray-700">
                         {sortedAndFilteredData.map((item, index) => (
-                            <tr key={index} className="hover:bg-slate-700/50 transition-colors duration-150">
+                            <tr key={index} className="hover:bg-gray-700/50 transition-colors duration-150">
                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">{item.teamName}</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{item.leaderWhatsApp}</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">{item.email}</td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                                     <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                        item.joinedWhatsApp === 'Yes' ? 'bg-green-800 text-green-200' : 'bg-red-800 text-red-200'
+                                        item.joinedWhatsApp === 'Yes' ? 'bg-green-800 text-green-200' : item.joinedWhatsApp === 'No' ? 'bg-red-800 text-red-200' : 'bg-gray-700 text-gray-300'
                                     }`}>
                                         {item.joinedWhatsApp}
                                     </span>
@@ -109,7 +128,8 @@ const DataTable: React.FC<DataTableProps> = ({ data }) => {
                 </table>
                  {sortedAndFilteredData.length === 0 && (
                     <div className="text-center py-8 text-gray-400">
-                        No results found for "{searchTerm}".
+                        <p className="font-semibold text-lg">No Results Found</p>
+                        <p>Try adjusting your search or filter criteria.</p>
                     </div>
                 )}
             </div>

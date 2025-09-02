@@ -1,6 +1,6 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
-import { AnalysisResult } from '../types';
+import type { AnalysisResult, ExtractedTeam } from '../types';
 
 if (!process.env.API_KEY) {
     // In a real app, you'd want to handle this more gracefully.
@@ -50,5 +50,43 @@ export const analyzeTeamNames = async (teamNames: string[], instruction: string)
     } catch (error) {
         console.error("Error analyzing team names:", error);
         throw new Error("Failed to get analysis from Gemini API.");
+    }
+};
+
+export const extractTeamsFromFileContent = async (fileContentBase64: string, mimeType: string): Promise<ExtractedTeam[]> => {
+    const schema = {
+        type: Type.ARRAY,
+        items: {
+            type: Type.OBJECT,
+            properties: {
+                teamName: { type: Type.STRING, description: "The full name of the team." },
+                email: { type: Type.STRING, description: "The contact email address for the team." },
+            },
+            required: ["teamName", "email"],
+        },
+    };
+
+    try {
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: {
+                parts: [
+                    { text: "Extract all team names and their corresponding email addresses from this document. Only include entries that clearly represent a team with an associated email. Ignore headers, footers, or any text that is not part of a team entry. Ensure the output conforms to the provided JSON schema." },
+                    { inlineData: { mimeType, data: fileContentBase64 } },
+                ],
+            },
+            config: {
+                responseMimeType: 'application/json',
+                responseSchema: schema,
+            }
+        });
+
+        const jsonText = response.text.trim();
+        const parsedResult = JSON.parse(jsonText) as ExtractedTeam[];
+        return parsedResult;
+
+    } catch (error) {
+        console.error("Error extracting teams from file:", error);
+        throw new Error("Failed to extract teams using Gemini API.");
     }
 };
